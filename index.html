@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Protocolos de Análisis en QuPath — Diagramas de Flujo</title>
+  <style>
+    :root{
+      --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-200:#bfdbfe; --blue-300:#93c5fd; --blue-400:#60a5fa;
+      --blue-500:#3b82f6; --blue-600:#2563eb; --blue-700:#1d4ed8; --blue-800:#1e40af; --blue-900:#1e3a8a;
+
+      --green-50:#f0fdf4; --green-100:#dcfce7; --green-200:#bbf7d0; --green-300:#86efac; --green-400:#4ade80;
+      --green-500:#22c55e; --green-600:#16a34a; --green-700:#15803d; --green-800:#166534; --green-900:#14532d;
+
+      --yellow-50:#fffbeb; --yellow-100:#fef3c7; --yellow-200:#fde68a; --yellow-400:#fbbf24; --yellow-600:#d97706; --yellow-700:#b45309;
+
+      --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-600:#4b5563; --gray-700:#374151; --gray-900:#111827;
+
+      --shadow: 0 18px 45px rgba(15,23,42,.12);
+      --shadow2: 0 10px 28px rgba(15,23,42,.10);
+      --radius: 22px;
+      --radius2: 14px;
+
+      /* ✅ Times New Roman */
+      --font: "Times New Roman", Times, serif;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--font); color:#0f172a;
+      background: radial-gradient(1100px 600px at 20% 10%, var(--blue-50), transparent 70%),
+                  radial-gradient(1000px 600px at 90% 20%, #ffffff, transparent 65%),
+                  linear-gradient(135deg, var(--blue-50), #fff, var(--blue-100));
+    }
+
+    .wrap{min-height:100vh; padding:32px}
+    .container{max-width:1280px; margin:0 auto}
+
+    /* Header */
+    .header{
+      background: linear-gradient(90deg, var(--blue-600), var(--blue-800));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 22px;
+      color:#fff;
+      display:flex; align-items:center; gap:16px;
+    }
+    .header h1{margin:0; font-size:34px; line-height:1.1}
+    .header p{margin:6px 0 0; color:#cfe2ff; font-size:16px}
+    .icon{width:64px; height:64px; flex:0 0 auto; opacity:.98}
+
+    /* Selector */
+    .selector{display:flex; gap:14px; margin: 18px 0 22px}
+    .btn{
+      flex:1;
+      padding: 14px 16px;
+      border-radius: 14px;
+      font-weight: 900;
+      cursor:pointer;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease, color .15s ease;
+      background:#fff;
+      border:2px solid var(--blue-300);
+      color: var(--blue-600);
+      box-shadow: 0 6px 16px rgba(15,23,42,.06);
+      font-family: var(--font);
+    }
+    .btn:hover{transform: translateY(-1px); box-shadow: 0 10px 22px rgba(15,23,42,.10)}
+    .btn.blue-active{
+      background: linear-gradient(90deg, var(--blue-600), var(--blue-700));
+      color:#fff; border-color: transparent;
+      transform: scale(1.02);
+      box-shadow: var(--shadow2);
+    }
+    .btn.green{
+      border-color: var(--green-300);
+      color: var(--green-600);
+    }
+    .btn.green-active{
+      background: linear-gradient(90deg, var(--green-600), var(--green-700));
+      color:#fff; border-color: transparent;
+      transform: scale(1.02);
+      box-shadow: var(--shadow2);
+    }
+
+    /* Panels */
+    .panel{
+      background:#fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 26px;
+    }
+    .title{
+      text-align:center;
+      margin:0 0 6px;
+      font-size: 28px;
+      letter-spacing:.2px;
+    }
+    .subtitle{
+      text-align:center;
+      margin:0 0 18px;
+      color: var(--gray-600);
+      font-size: 14px;
+    }
+
+    .grid{
+      display:flex;
+      justify-content:center;
+      gap: 42px;
+      padding: 10px 0 0;
+      flex-wrap: wrap;
+    }
+    .col{display:flex; flex-direction:column; align-items:center; gap:14px}
+
+    .colhead{
+      width: 320px;
+      border-radius: 18px;
+      color:#fff;
+      padding: 16px;
+      text-align:center;
+      box-shadow: 0 12px 28px rgba(15,23,42,.12);
+    }
+    .colhead h3{margin:0 0 6px; font-size:18px; letter-spacing:.4px}
+    .colhead p{margin:0; font-size:12.8px; opacity:.88}
+    .colhead.blue{background: linear-gradient(135deg, var(--blue-500), var(--blue-700))}
+    .colhead.blue2{background: linear-gradient(135deg, var(--blue-600), var(--blue-800))}
+    .colhead.green{background: linear-gradient(135deg, var(--green-500), var(--green-700))}
+    .colhead.green2{background: linear-gradient(135deg, var(--green-600), var(--green-800))}
+
+    .arrow{width: 30px; height: 30px; opacity:.95}
+    .arrow.blue path{stroke: var(--blue-600)}
+    .arrow.green path{stroke: var(--green-600)}
+    .arrow.muted{opacity:.6}
+
+    .card{
+      width: 320px;
+      background: var(--blue-50);
+      border-radius: var(--radius2);
+      padding: 16px;
+      border: 3px solid var(--blue-400);
+      position: relative;
+    }
+    .card.green{
+      background: var(--green-50);
+      border-color: var(--green-400);
+    }
+    .badge{
+      position:absolute; top:-12px; left:-12px;
+      width:34px; height:34px;
+      border-radius: 999px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight: 900;
+      color:#fff;
+      box-shadow: 0 10px 20px rgba(15,23,42,.12);
+    }
+    .badge.blue{background: var(--blue-600)}
+    .badge.green{background: var(--green-600)}
+
+    .status-right{
+      position:absolute; top:-12px; right:-12px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .pill{
+      background: var(--gray-100);
+      color: var(--gray-600);
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:12px;
+      font-weight:900;
+      border: 1px solid var(--gray-200);
+    }
+    .pill.partial{
+      background: var(--yellow-100);
+      color: var(--yellow-700);
+      border-color: var(--yellow-200);
+    }
+
+    .check svg{width:26px; height:26px; filter: drop-shadow(0 6px 10px rgba(15,23,42,.10));}
+    .card h4{margin: 2px 0 12px; text-align:center; font-size:15.8px}
+
+    .box{
+      background:#fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid rgba(15,23,42,.08);
+      font-size: 12.5px;
+      color: var(--gray-700);
+      line-height: 1.35;
+    }
+    .box .lead{font-weight:900; color: var(--blue-700)}
+    .box .lead.green{color: var(--green-700)}
+    .indent{padding-left:14px}
+
+    .hint{
+      margin-top: 10px;
+      background: rgba(59,130,246,.14);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      line-height: 1.35;
+      color: var(--blue-900);
+    }
+    .hint.green{
+      background: rgba(34,197,94,.14);
+      color: var(--green-900);
+    }
+
+    .endcap{
+      width: 320px;
+      color:#fff;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align:center;
+      font-weight: 900;
+      box-shadow: 0 12px 28px rgba(15,23,42,.14);
+      letter-spacing: .3px;
+    }
+    .endcap.green{background: linear-gradient(135deg, var(--green-500), var(--green-700))}
+    .endcap.blue{background: linear-gradient(135deg, var(--blue-500), var(--blue-700))}
+
+    .note{
+      background: var(--yellow-50);
+      border-left: 4px solid var(--yellow-400);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 10px 0 18px;
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .note p{margin:0; color:#7c2d12; font-size:13px}
+
+    .muted{opacity:.6}
+
+    /* Tech section */
+    .tech{
+      margin-top: 22px;
+      background: linear-gradient(135deg, var(--green-50), var(--blue-50));
+      border-radius: 14px;
+      padding: 18px;
+      border: 2px solid var(--green-300);
+    }
+    .tech-head{display:flex; align-items:center; gap:10px; margin-bottom: 12px}
+    .tech-head h3{margin:0; font-size:18px; color: var(--green-900)}
+    .tech-grid{display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px}
+    .tech-card{
+      background:#fff;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--green-200);
+      font-size: 12.5px;
+      color: var(--gray-700);
+      line-height: 1.45;
+    }
+    .tech-card b{color: var(--green-800)}
+    .tech-card p{margin: 4px 0}
+
+    /* Footer */
+    .footer{
+      margin-top: 22px;
+      background: linear-gradient(90deg, var(--blue-700), var(--blue-900));
+      border-radius: 14px;
+      box-shadow: var(--shadow2);
+      color:#fff;
+      padding: 18px 16px;
+      text-align:center;
+    }
+    .footer .small{color:#cfe2ff; font-size:12.8px}
+
+    @media (max-width: 860px){
+      .wrap{padding:18px}
+      .header{flex-direction:column; align-items:flex-start}
+      .panel{padding:18px}
+      .tech-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="container">
+
+      <!-- Header -->
+      <header class="header">
+        <!-- Microscope (SVG) -->
+        <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 19h12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M10 3l4 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M9 7l5 5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M7 11a4 4 0 0 0 4 4h1" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M13 15a5 5 0 0 0 5-5V9" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M18 9V7a2 2 0 0 0-2-2h-1" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <path d="M8 19a6 6 0 0 1 6-6h4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <h1>Protocolos de Análisis en QuPath</h1>
+          <p>Diagramas de Flujo Detallados</p>
+        </div>
+      </header>
+
+      <!-- Selector -->
+      <div class="selector" role="tablist" aria-label="Selector de protocolo">
+        <button id="btn-bio" class="btn blue-active" role="tab" aria-selected="true">
+          Protocolo de Biocompatibilidad
+        </button>
+        <button id="btn-reg" class="btn green" role="tab" aria-selected="false">
+          Protocolo de Regeneración/Cicatrización
+        </button>
+      </div>
+
+      <!-- Panel: Biocompatibilidad -->
+      <section id="panel-bio" class="panel" role="tabpanel" aria-labelledby="btn-bio">
+        <h2 class="title" style="color:var(--blue-900)">Diagrama de Flujo - Biocompatibilidad</h2>
+        <p class="subtitle">Calibración: 0.32 µm/pixel | Aumentos: 4X-10X</p>
+
+        <div class="grid">
+          <!-- Epidermis -->
+          <div class="col">
+            <div class="colhead blue">
+              <h3>EPIDERMIS</h3>
+              <p>Evaluación de biocompatibilidad superficial</p>
+            </div>
+
+            <svg class="arrow blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <!-- Paso 1 -->
+            <div class="card">
+              <div class="badge blue">1</div>
+              <div class="status-right check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M22 4L12 14.01l-3-3" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+
+              <h4 style="color:var(--blue-900)">Grosor Epidérmico</h4>
+
+              <div class="box">
+                <div><span class="lead">• Aumento:</span> 10X</div>
+                <div><span class="lead">• Herramienta:</span> Líneas perpendiculares (mínimo 3)</div>
+                <div><span class="lead">• Desde:</span> Capa basal → Estrato córneo</div>
+                <div><span class="lead">• Nombre ROI:</span> "Epidermis_ROI"</div>
+                <div><span class="lead">• Nombre líneas:</span> "Base_1", "Base_2", etc.</div>
+              </div>
+
+              <div class="hint">
+                <b>Interpretación:</b><br>
+                ✓ Grosor normal = Biocompatible<br>
+                ✗ Muy grueso = Hiperplasia/Irritación<br>
+                ✗ Muy delgado = Atrofia/Daño
+              </div>
+            </div>
+
+            <svg class="arrow blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <!-- Paso 2 -->
+            <div class="card">
+              <div class="badge blue">2</div>
+              <div class="status-right check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M22 4L12 14.01l-3-3" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+
+              <h4 style="color:var(--blue-900)">Continuidad Epidérmica</h4>
+
+              <div class="box">
+                <div><span class="lead">• Aumento:</span> 4X-10X</div>
+                <div><span class="lead">• Herramienta:</span> Polígono</div>
+                <div><span class="lead">• Clases:</span> "Epidermis_presente" / "Epidermis_ausente"</div>
+                <div><span class="lead">• Cálculo:</span> % pérdida = (Área ausente / Área total) × 100</div>
+              </div>
+
+              <div class="hint">
+                <b>Clasificación de severidad:</b><br>
+                0 - Intacta: 0-1%<br>
+                1 - Leve: 1-10%<br>
+                2 - Moderada: 10-30%<br>
+                3 - Severa: &gt;30%
+              </div>
+            </div>
+
+            <svg class="arrow blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="endcap green">EVALUACIÓN DE TOLERANCIA EPIDÉRMICA</div>
+          </div>
+
+          <!-- Dermis -->
+          <div class="col">
+            <div class="colhead blue2">
+              <h3>DERMIS</h3>
+              <p>Evaluación de respuesta tisular profunda</p>
+            </div>
+
+            <svg class="arrow blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card">
+              <div class="badge blue">1</div>
+              <div class="status-right check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M22 4L12 14.01l-3-3" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+
+              <h4 style="color:var(--blue-900)">Anotaciones Manuales</h4>
+
+              <div class="box">
+                <div><span class="lead">• Herramienta:</span> Polígono</div>
+                <div><span class="lead">• Múltiples áreas de:</span></div>
+                <div class="indent">- Infiltrado inflamatorio (núcleos densos, morados)</div>
+                <div class="indent">- Colágeno (fibras rosadas, eosinofílicas)</div>
+                <div class="indent">- Edema (espacios claros entre fibras)</div>
+              </div>
+            </div>
+
+            <svg class="arrow blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card">
+              <div class="badge blue">2</div>
+              <div class="status-right check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M22 4L12 14.01l-3-3" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+
+              <h4 style="color:var(--blue-900)">Entrenamiento del Clasificador</h4>
+
+              <div class="box">
+                <div><span class="lead">• Menú:</span> Pixel Classification</div>
+                <div><span class="lead">• Acción:</span> Train Pixel Classifier</div>
+                <div><span class="lead">• Aprendizaje:</span> Patrones cromáticos y texturales</div>
+                <div><span class="lead">• Validación:</span> Live Prediction</div>
+              </div>
+            </div>
+
+            <svg class="arrow blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card">
+              <div class="badge blue">3</div>
+              <div class="status-right check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M22 4L12 14.01l-3-3" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+
+              <h4 style="color:var(--blue-900)">Cuantificación Automática</h4>
+
+              <div class="box">
+                <div class="lead">• Aplicar clasificador a dermis completa</div>
+                <div class="lead">• Exportar áreas relativas (%)</div>
+              </div>
+
+              <div class="hint">
+                <b>Interpretación:</b><br>
+                • Infiltrado ↑ = Irritación<br>
+                • Colágeno organizado = Estabilidad<br>
+                • Edema ↑ = Inflamación
+              </div>
+            </div>
+
+            <svg class="arrow blue" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="endcap green">CARACTERIZACIÓN DE BIOCOMPATIBILIDAD DÉRMICA</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel: Regeneración -->
+      <section id="panel-reg" class="panel" role="tabpanel" aria-labelledby="btn-reg" style="display:none;">
+        <h2 class="title" style="color:var(--green-900)">Diagrama de Flujo - Regeneración/Cicatrización</h2>
+
+        <div class="note" role="note" aria-label="Nota de aplicación parcial">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="margin-top:2px">
+            <circle cx="12" cy="12" r="10" stroke="var(--yellow-600)" stroke-width="2"/>
+            <path d="M12 7v6" stroke="var(--yellow-600)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 17h.01" stroke="var(--yellow-600)" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <p><b>Nota:</b> Protocolo completo diseñado. Aplicación parcial en este estudio por limitaciones de muestras.</p>
+        </div>
+
+        <div class="grid">
+
+          <!-- Epidermis -->
+          <div class="col">
+            <div class="colhead green">
+              <h3>EPIDERMIS</h3>
+              <p>Análisis de reepitelización</p>
+            </div>
+
+            <svg class="arrow green muted" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card green muted">
+              <div class="badge green">1</div>
+              <div class="status-right"><span class="pill">No aplicado</span></div>
+              <h4 style="color:var(--green-900)">Delimitación Manual</h4>
+              <div class="box">
+                <div><span class="lead green">• Visualización:</span> RGB mean</div>
+                <div><span class="lead green">• Herramienta:</span> Polígono con Ctrl+Alt</div>
+                <div><span class="lead green">• Desde:</span> Capa basal → Estrato córneo</div>
+                <div><span class="lead green">• Evitar:</span> Incluir dermis</div>
+              </div>
+            </div>
+
+            <svg class="arrow green muted" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card green muted">
+              <div class="badge green">2</div>
+              <div class="status-right"><span class="pill">No aplicado</span></div>
+              <h4 style="color:var(--green-900)">Clasificación de Estratos</h4>
+              <div class="box">
+                <div><span class="lead green">• Add class:</span> "Estrato córneo"</div>
+                <div><span class="lead green">• Add class:</span> "Zona basal"</div>
+                <div><span class="lead green">• Asignar:</span> Set class a cada anotación</div>
+                <div><span class="lead green">• Objetivo:</span> Segmentar zonas epidérmicas</div>
+              </div>
+            </div>
+
+            <svg class="arrow green muted" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card green muted">
+              <div class="badge green">3</div>
+              <div class="status-right"><span class="pill">No aplicado</span></div>
+              <h4 style="color:var(--green-900)">Pixel Classifier - Densidad</h4>
+              <div class="box">
+                <div><span class="lead green">• Menú:</span> Create thresholder</div>
+                <div><span class="lead green">• Channel:</span> Hematoxylin (núcleos)</div>
+                <div><span class="lead green">• Prefilter:</span> Gaussian</div>
+                <div><span class="lead green">• Region:</span> Within annotation</div>
+                <div><span class="lead green">• Output:</span> Densidad nuclear/µm²</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dermis -->
+          <div class="col">
+            <div class="colhead green2">
+              <h3>DERMIS</h3>
+              <p>Análisis de remodelación tisular</p>
+            </div>
+
+            <svg class="arrow green" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card green">
+              <div class="badge green">1</div>
+              <div class="status-right check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M22 4L12 14.01l-3-3" stroke="var(--green-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <h4 style="color:var(--green-900)">Delimitación "Dermis_ROI"</h4>
+              <div class="box">
+                <div><span class="lead green">• Herramienta:</span> Polígono</div>
+                <div><span class="lead green">• Incluir:</span> Matriz extracelular + células</div>
+                <div><span class="lead green">• Preparación:</span> Estimate stain vectors (H&E)</div>
+              </div>
+            </div>
+
+            <svg class="arrow green" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card green">
+              <div class="badge green">2</div>
+              <div class="status-right"><span class="pill partial">Parcial</span></div>
+              <h4 style="color:var(--green-900)">Detección de Células</h4>
+              <div class="box">
+                <div><span class="lead green">• Menú:</span> Cell detection</div>
+                <div style="margin-top:6px"><b style="color:var(--green-800)">Parámetros:</b></div>
+                <div class="indent" style="font-size:11px; line-height:1.45">
+                  - Detection: Hematoxylin OD<br>
+                  - Background radius: 8-10 µm<br>
+                  - Nuclear area: 20-200 µm²<br>
+                  - Threshold: 0.2-0.3
+                </div>
+              </div>
+            </div>
+
+            <svg class="arrow green" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="card green">
+              <div class="badge green">3</div>
+              <div class="status-right"><span class="pill partial">Parcial</span></div>
+              <h4 style="color:var(--green-900)">Clasificación y Cuantificación</h4>
+              <div class="box">
+                <div><span class="lead green">• Colágeno:</span> ✓ Organización/densidad</div>
+                <div><span class="lead green">• Fibroblastos:</span> ✗ Área 30-70 µm², elongación ≥1.5</div>
+                <div><span class="lead green">• Vasos:</span> ✗ Angiogénesis</div>
+                <div><span class="lead green">• Macrófagos:</span> ✗ 100-250 µm², núcleo arriñonado</div>
+                <div><span class="lead green">• Linfocitos:</span> ✗ 30-60 µm², circularity &gt;0.85</div>
+              </div>
+            </div>
+
+            <svg class="arrow green" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M7 14l5 5 5-5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+
+            <div class="endcap blue">PROTOCOLO VALIDADO PARA ESTUDIOS FUTUROS</div>
+          </div>
+        </div>
+
+        <!-- Configuraciones técnicas -->
+        <div class="tech">
+          <div class="tech-head">
+            <!-- Settings (SVG) -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="var(--green-700)" stroke-width="2"/>
+              <path d="M19.4 15a7.97 7.97 0 0 0 .1-1 7.97 7.97 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a8.1 8.1 0 0 0-1.7-1L15 2h-6l-.4 2.5a8.1 8.1 0 0 0-1.7 1L4.5 4.5l-2 3.5 2 1.5a7.97 7.97 0 0 0-.1 1c0 .34.03.67.1 1l-2 1.5 2 3.5 2.4-1a8.1 8.1 0 0 0 1.7 1L9 22h6l.4-2.5a8.1 8.1 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5Z"
+                    stroke="var(--green-700)" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            <h3>Configuraciones Técnicas QuPath</h3>
+          </div>
+
+          <div class="tech-grid">
+            <div class="tech-card">
+              <b>Pixel Classifier (Epidermis)</b>
+              <p>• Resolution: Full (264.58 µm/pixel)</p>
+              <p>• Channel: Hematoxylin</p>
+              <p>• Smoothing sigma: 0.0</p>
+              <p>• Region: Within annotation</p>
+            </div>
+
+            <div class="tech-card">
+              <b>Cell Detection (Dermis)</b>
+              <p>• Requested pixel size: 0.5 µm</p>
+              <p>• Background radius: 8 µm</p>
+              <p>• Sigma: 1.5</p>
+              <p>• Min/Max nuclear area: 10-400 µm²</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div style="font-weight:900;font-size:16px;margin-bottom:6px">Universidad Icesi</div>
+        <div class="small">Facultad Barberi de Ingeniería, Diseño y Ciencias Aplicadas</div>
+        <div class="small">Química Farmacéutica • Santiago de Cali • 2025</div>
+      </footer>
+
+    </div>
+  </div>
+
+  <script>
+    const btnBio = document.getElementById('btn-bio');
+    const btnReg = document.getElementById('btn-reg');
+    const panelBio = document.getElementById('panel-bio');
+    const panelReg = document.getElementById('panel-reg');
+
+    function setActive(which){
+      const isBio = which === 'bio';
+      panelBio.style.display = isBio ? '' : 'none';
+      panelReg.style.display = isBio ? 'none' : '';
+
+      btnBio.classList.toggle('blue-active', isBio);
+      btnReg.classList.toggle('green-active', !isBio);
+
+      btnBio.setAttribute('aria-selected', String(isBio));
+      btnReg.setAttribute('aria-selected', String(!isBio));
+    }
+
+    btnBio.addEventListener('click', () => setActive('bio'));
+    btnReg.addEventListener('click', () => setActive('reg'));
+  </script>
+</body>
+</html>
